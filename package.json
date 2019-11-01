@@ -1,0 +1,15 @@
+{
+  "name": "food-delivery-server-goit",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "author": "Alexander Podlesnyi",
+  "license": "ISC",
+  "dependencies": {
+    "nodemon": "^1.19.4"
+  }
+}
