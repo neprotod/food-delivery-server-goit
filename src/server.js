@@ -6,7 +6,29 @@ const router = require('./router');
 
 const start = (PORT) => {
     const server = http.createServer((req, res)=>{
-        res.end('');
+        const parseUrl = url.parse(req.url, true);
+
+        let routName = 'default';
+        let params = [];
+
+
+        let parse = String(parseUrl.pathname).split('/');
+
+        parse.shift();
+
+        // Get rout name and get params
+        if(parse[0] != ''){
+            routName = parse.shift();
+            params = parse;
+        }
+
+        // Register global variable
+        Register.url = parseUrl;
+        Register.method = req.method;
+
+        const result = router.connection(routName,params,req.method);
+
+        res.end(result);
     });
 
     server.listen(PORT,()=>{
