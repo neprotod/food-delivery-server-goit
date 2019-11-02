@@ -26,7 +26,7 @@ const start = (PORT) => {
         Register.url = parseUrl;
         Register.method = req.method;
 
-        const result = router.connection(routName,params,req.method);
+        const result = router.connection(req,res,routName,params);
 
         res.end(result);
     });
