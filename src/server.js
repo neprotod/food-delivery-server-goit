@@ -1,6 +1,7 @@
 const Register = require("./handler/register");
 const http = require('http');
 const url = require('url');
+const qs = require('querystring');
 
 const router = require('./router');
 
@@ -22,13 +23,23 @@ const start = (PORT) => {
             params = parse;
         }
 
-        // Register global variable
-        Register.url = parseUrl;
-        Register.method = req.method;
+        
 
-        const result = router.connection(req,res,routName,params);
+        let body = '';
+        // We have to get data from buffer
+        req.on('data',(data)=>{
+            body += data;
+        });
 
-        res.end(result);
+        req.on('end',async ()=>{
+            req.body = {};
+            if(body)
+                req.body = qs.parse(body);
+
+            const result = await router.connection(req,res,routName,params);
+            
+            res.end(result);
+        });
     });
 
     server.listen(PORT,()=>{
