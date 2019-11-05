@@ -9,11 +9,18 @@ module.exports = async (req,res) =>{
     return new Promise((resolve, reject) => {
         fs.readFile(filePath, 'utf8', (err, data)=>{
             if(err)
-                reject(err);
-            if(!data)
-                data = JSON.stringify({});
+                return reject(err);
+            try{
+                // To get string because empty file is buffer
+                data = data.toString();
+
+                if(!data)
+                    data = JSON.stringify({});
             
-            resolve(data);
+                return resolve(data);
+            }catch(e){
+                return reject(e);
+            }
         });
     });
 }

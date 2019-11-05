@@ -7,7 +7,16 @@ const router = require('./router');
 
 const start = (PORT) => {
     const server = http.createServer((req, res)=>{
-        const parseUrl = url.parse(req.url, true);
+        let parseUrl;
+
+        try{
+            parseUrl = url.parse(req.url, true);
+        }catch(e){
+            console.error('Parse url: ',e);
+            res.end();
+            return false;
+        }
+        
 
         let routName = 'default';
         let params = [];
@@ -32,7 +41,7 @@ const start = (PORT) => {
         });
 
         req.on('end',async ()=>{
-            req.body = {};
+            req.body = '';
             if(body)
                 req.body = qs.parse(body);
 

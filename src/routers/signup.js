@@ -38,35 +38,64 @@ module.exports = async (req,res) =>{
         }
 
         
-        return new Promise((resolve, rejesct) => {
-            
-            let users = [];
-            // If we have users, we get them
-            if(fs.existsSync(filePath)){
-                users = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-            }
+        return new Promise(async (resolve, reject) => {
+            try{
+                // If we have users, we get them
+                const readFile = new Promise((resol)=>{
+                    fs.stat(filePath, (err, stats)=>{
+                        if(err)
+                            return reject(err);
+                        if(!stats){
+                            return resol([]);
+                        }
 
-            // And we must add new users to array
-            users.push(user);
+                        fs.readFile(filePath,(err, data)=>{
+                            if(err)
+                                return reject(err);
+                            
+                            try{
+                                // To get string because empty file is buffer
+                                data = data.toString();
 
-            user.status = "success";
-            
-            const buffer = Buffer.from(JSON.stringify(users));
-            // write the user
-            fs.open(filePath, 'w', (err, fd)=>{
-                if(err)
-                    throw 'could not open file: ' + err;
-                
-                // Write content
-                fs.write(fd, buffer, 0, buffer.length, null, (err) => {
-                    if (err) throw 'error writing file: ' + err;
-                    
-                    // Завершить изменение файла
-                    fs.close(fd, () => {
-                        resolve(JSON.stringify(user));
+                                if(!data){
+                                    return resol([]);
+                                }
+                                return resol(JSON.parse(data));
+                            }catch(e){
+                                reject(e);
+                            }
+                        });
+
                     });
-                });            
-            });
+                });
+                
+                let users = await readFile;
+
+                // And we must add new users to array
+                users.push(user);
+
+                user.status = "success";
+                
+                const buffer = Buffer.from(JSON.stringify(users));
+                // write the user
+                fs.open(filePath, 'w', (err, fd)=>{
+                    if(err)
+                        return reject('could not open file: ' + err);
+                    
+                    // Write content
+                    fs.write(fd, buffer, 0, buffer.length, null, (err) => {
+                        if (err) 
+                            return reject('error writing file: ' + err);
+                        
+                        // Finished modifying the file
+                        fs.close(fd, () => {
+                            return resolve(JSON.stringify(user));
+                        });
+                    });            
+                });
+            }catch(e){
+                return reject(e);
+            }
         });
     }else{
         res.writeHead(200, {"Content-Type": "text/html"});
