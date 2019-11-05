@@ -67,15 +67,6 @@ module.exports = async (req,res) =>{
                     });
                 });            
             });
-
-            /*
-            fs.writeFile(filePath, JSON.stringify(users),(err)=>{
-                if(err)
-                    console.error(err);
-                
-                resolve(user);
-            });
-            */
         });
     }else{
         res.writeHead(200, {"Content-Type": "text/html"});

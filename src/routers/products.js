@@ -7,7 +7,7 @@ module.exports = async (req,res) =>{
 
     const filePath = path.join(__dirname,'..','db','all-products.json');
     return new Promise((resolve, reject) => {
-        let data = fs.readFile(filePath, 'utf8', (err, data)=>{
+        fs.readFile(filePath, 'utf8', (err, data)=>{
             if(err)
                 reject(err);
             if(!data)
