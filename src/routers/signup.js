@@ -67,7 +67,7 @@ module.exports = async (req,res) =>{
                         });
 
                     });
-                });
+                }).catch((e)=> console.error(e));
                 
                 let users = await readFile;
 
@@ -96,7 +96,7 @@ module.exports = async (req,res) =>{
             }catch(e){
                 return reject(e);
             }
-        });
+        }).catch((e)=> console.error('err', e));
     }else{
         res.writeHead(200, {"Content-Type": "text/html"});
         return `It is only post`;

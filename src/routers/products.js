@@ -22,5 +22,5 @@ module.exports = async (req,res) =>{
                 return reject(e);
             }
         });
-    });
+    }).catch((err) => console.error(err));
 }
