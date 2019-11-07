@@ -1,6 +1,35 @@
 const fs = require('fs');
 const path = require('path');
 
+const getFile = async (filePath)=>{
+    // If we have users, we get them
+    return new Promise((resolve, reject)=>{
+        fs.stat(filePath, (err, stats)=>{
+            if(!stats){
+                return resolve([]);
+            }
+            
+            fs.readFile(filePath,(err, data)=>{
+                if(err)
+                    return reject(err);
+                
+                try{
+                    // To get string because empty file is buffer
+                    data = data.toString();
+
+                    if(!data){
+                        return resolve([]);
+                    }
+                    return resolve(JSON.parse(data));
+                }catch(e){
+                    reject(e);
+                }
+            });
+
+        });
+    }).catch((e)=> console.error('errorrrr',e));
+}
+
 module.exports = async (req,res) =>{
     if(req.method == 'POST'){
         res.writeHead(200, {"Content-Type": "application/json"});
@@ -37,46 +66,19 @@ module.exports = async (req,res) =>{
             }
         }
 
-        
+        // Read file for add new users order
+        let users = await getFile(filePath);
+
+        console.log(users);
+        // And we must add new users to array
+        users.push(user);
+
+        user.status = "success";
+
+        const buffer = Buffer.from(JSON.stringify(users));
+
         return new Promise(async (resolve, reject) => {
             try{
-                // If we have users, we get them
-                const readFile = new Promise((resol)=>{
-                    fs.stat(filePath, (err, stats)=>{
-                        if(err)
-                            return reject(err);
-                        if(!stats){
-                            return resol([]);
-                        }
-
-                        fs.readFile(filePath,(err, data)=>{
-                            if(err)
-                                return reject(err);
-                            
-                            try{
-                                // To get string because empty file is buffer
-                                data = data.toString();
-
-                                if(!data){
-                                    return resol([]);
-                                }
-                                return resol(JSON.parse(data));
-                            }catch(e){
-                                reject(e);
-                            }
-                        });
-
-                    });
-                }).catch((e)=> console.error(e));
-                
-                let users = await readFile;
-
-                // And we must add new users to array
-                users.push(user);
-
-                user.status = "success";
-                
-                const buffer = Buffer.from(JSON.stringify(users));
                 // write the user
                 fs.open(filePath, 'w', (err, fd)=>{
                     if(err)
