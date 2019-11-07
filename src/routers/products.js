@@ -4,17 +4,26 @@ const path = require('path');
 /**
  * This function will find all products by ids
  * 
- * @param {Object} products all proucts
- * @param {Array}  ids      id to find
+ * @param  {Object} products all proucts
+ * @param  {Array}  ids      id to find
+ * @param  {string} category id to find
  * @return {Array} return products or []
  */
-function findProducts(products, ids){
+function findProducts(products, ids, category = null){
     let find = [];
     for(let product of products){
-        const check = ids.some((id)=>{
-            return id == product.id;
-        });
-
+        let check = false;
+        if(ids){
+            check = ids.some((id)=>{
+                return id == product.id;
+            });
+        }else if(category){
+            
+            check = product.categories.some((cat)=>{
+                return cat == category;
+            });
+        }
+        
         if(check){
             find.push(product);
         }
@@ -55,16 +64,24 @@ module.exports = async (req,res, id = null) =>{
             
         }).catch((err) => console.error(err));
         
-        // if we got an id, we should find it
+        // if we got an id or category, we should find it
         if(id){
             find_products.products = findProducts(products, [id]);
-            if(find_products.products.length > 0)
-                find_products.status = "success";
-
-            return JSON.stringify(find_products);
+        }else if(req.quary.ids){
+            find_products.products = findProducts(products, req.quary.ids.split(','));
+        }else if(req.quary.category){
+            find_products.products = findProducts(products, null, req.quary.category);
         }else{
+            // return all products
             return JSON.stringify(products);
         }
+
+        // Check and return find products
+        if(find_products.products.length > 0)
+            find_products.status = "success";
+
+        return JSON.stringify(find_products);
+
         
     }catch(e){
         console.error(e);
