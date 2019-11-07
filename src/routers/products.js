@@ -1,26 +1,76 @@
 const fs = require('fs');
 const path = require('path');
 
-module.exports = async (req,res) =>{
+/**
+ * This function will find all products by ids
+ * 
+ * @param {Object} products all proucts
+ * @param {Array}  ids      id to find
+ * @return {Array} return products or []
+ */
+function findProducts(products, ids){
+    let find = [];
+    for(let product of products){
+        const check = ids.some((id)=>{
+            return id == product.id;
+        });
+
+        if(check){
+            find.push(product);
+        }
+    }
+
+    return find;
+}
+
+module.exports = async (req,res, id = null) =>{
+
+    const find_products = {
+        "status": "no products", 
+        "products": []
+    }
+
 
     res.writeHead(200, {"Content-Type": "application/json"});
 
     const filePath = path.join(__dirname,'..','db','all-products.json');
-    return new Promise((resolve, reject) => {
-        fs.readFile(filePath, 'utf8', (err, data)=>{
-            if(err)
-                return reject(err);
-            try{
-                // To get string because empty file is buffer
-                data = data.toString();
+    try{
+        const products = await new Promise((resolve, reject) => {
+            fs.readFile(filePath, 'utf8', (err, data)=>{
+                if(err)
+                    return reject(err);
+                try{
+                    // To get string because empty file is buffer
+                    data = data.toString();
 
-                if(!data)
-                    data = JSON.stringify({});
+                    if(!data)
+                        data = [];
+                
+                    return resolve(JSON.parse(data));
+                }catch(e){
+                    return reject(e);
+                }
+            });
             
-                return resolve(data);
-            }catch(e){
-                return reject(e);
-            }
-        });
-    }).catch((err) => console.error(err));
+            
+        }).catch((err) => console.error(err));
+        
+        // if we got an id, we should find it
+        if(id){
+            find_products.products = findProducts(products, [id]);
+            if(find_products.products.length > 0)
+                find_products.status = "success";
+
+            return JSON.stringify(find_products);
+        }else{
+            return JSON.stringify(products);
+        }
+        
+    }catch(e){
+        console.error(e);
+
+        return JSON.stringify(find_products);
+    }
+
+
 }
