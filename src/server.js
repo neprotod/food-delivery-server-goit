@@ -17,6 +17,8 @@ const start = (PORT) => {
             return false;
         }
         
+        req.quary = parseUrl.query;
+
 
         let routName = 'default';
         let params = [];
