@@ -10,31 +10,33 @@ const path = require('path');
  * @return {Array} return products or []
  */
 function findProducts(products, ids, category = null){
-    let find = [];
+    let productsList = [];
+
     for(let product of products){
+
         let check = false;
-        if(ids){
+
+        if(Array.isArray(ids)){
             check = ids.some((id)=>{
-                return id == product.id;
+                return +id === product.id;
             });
         }else if(category){
-            
             check = product.categories.some((cat)=>{
-                return cat == category;
+                return cat === category;
             });
         }
         
         if(check){
-            find.push(product);
+            productsList.push(product);
         }
     }
 
-    return find;
+    return productsList;
 }
 
-module.exports = async (req,res, id = null) =>{
+module.exports = async (req, res, id = null) =>{
 
-    const find_products = {
+    const productsList = {
         "status": "no products", 
         "products": []
     }
@@ -44,18 +46,18 @@ module.exports = async (req,res, id = null) =>{
 
     const filePath = path.join(__dirname,'..','db','all-products.json');
     try{
-        const products = await new Promise((resolve, reject) => {
-            fs.readFile(filePath, 'utf8', (err, data)=>{
+        const allProducts = await new Promise((resolve, reject) => {
+            fs.readFile(filePath, 'utf8', (err, allProducts)=>{
                 if(err)
                     return reject(err);
                 try{
                     // To get string because empty file is buffer
-                    data = data.toString();
+                    allProducts = allProducts.toString();
 
-                    if(!data)
-                        data = [];
+                    if(!allProducts)
+                        allProducts = [];
                 
-                    return resolve(JSON.parse(data));
+                    return resolve(JSON.parse(allProducts));
                 }catch(e){
                     return reject(e);
                 }
@@ -64,28 +66,26 @@ module.exports = async (req,res, id = null) =>{
         
         // if we got an id or category, we should find it
         if(id){
-            find_products.products = findProducts(products, [id]);
+            productsList.products = findProducts(allProducts, [id]);
         }else if(req.query.ids){
-            find_products.products = findProducts(products, req.query.ids.split(','));
+            productsList.products = findProducts(allProducts, req.query.ids.split(','));
         }else if(req.query.category){
-            find_products.products = findProducts(products, null, req.query.category);
+            productsList.products = findProducts(allProducts, null, req.query.category);
         }else{
             // return all products
-            return JSON.stringify(products);
+            return JSON.stringify(allProducts);
         }
 
         // Check and return find products
-        if(find_products.products.length > 0)
-            find_products.status = "success";
+        if(productsList.products.length > 0)
+            productsList.status = "success";
 
-        return JSON.stringify(find_products);
+        return JSON.stringify(productsList);
 
         
     }catch(e){
         console.error(e);
 
-        return JSON.stringify(find_products);
+        return JSON.stringify(productsList);
     }
-
-
 }
