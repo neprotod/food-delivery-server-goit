@@ -60,17 +60,15 @@ module.exports = async (req,res, id = null) =>{
                     return reject(e);
                 }
             });
-            
-            
         }).catch((err) => console.error(err));
         
         // if we got an id or category, we should find it
         if(id){
             find_products.products = findProducts(products, [id]);
-        }else if(req.quary.ids){
-            find_products.products = findProducts(products, req.quary.ids.split(','));
-        }else if(req.quary.category){
-            find_products.products = findProducts(products, null, req.quary.category);
+        }else if(req.query.ids){
+            find_products.products = findProducts(products, req.query.ids.split(','));
+        }else if(req.query.category){
+            find_products.products = findProducts(products, null, req.query.category);
         }else{
             // return all products
             return JSON.stringify(products);
