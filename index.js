@@ -5,7 +5,15 @@ const routers = require('./src/routers');
 
 const app = express();
 
+
+process.on('exit',()=>{
+    console.error('Shutdown node js');
+});
+
+
+app.use(express.json());
 app.use('/', routers);
+
 
 
 app.listen(config.port, ()=>{

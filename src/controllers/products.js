@@ -1,4 +1,5 @@
-const products = require('../models/products');
+const productsModel = require('../models/products');
+
 
 const {findProducts, findCategories} = require('../utils/products');
 
@@ -8,8 +9,14 @@ const productsList = {
 }
 
 module.exports = {
+    /**
+     * Get products by ids or category
+     * 
+     * @param {*} req 
+     * @param {*} res 
+     */
     async getProducts(req, res){
-        const allProducts = await products.getAllProducts();
+        const allProducts = await productsModel.getAllProducts();
     
         if(req.query.ids){
             const ids = req.query.ids.split(',');
@@ -26,11 +33,17 @@ module.exports = {
     
         res.status('200');
         res.set('Content-Type', 'application/json');
-        
-        res.end(JSON.stringify(productsList));
+
+        res.json(productsList);
     },
+    /**
+     * Get products by id
+     * 
+     * @param {*} req 
+     * @param {*} res 
+     */
     async getProduct(req, res){
-        const allProducts = await products.getAllProducts();
+        const allProducts = await productsModel.getAllProducts();
         productsList.products = findProducts(allProducts, [req.params.id]);
         
         if(productsList.products.length > 0){
@@ -39,6 +52,6 @@ module.exports = {
         res.status('200');
         res.set('Content-Type', 'application/json');
 
-        res.end(JSON.stringify(productsList));
+        res.json(productsList);
     }
 }
