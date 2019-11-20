@@ -27,7 +27,7 @@ module.exports = {
      * @param {*} req 
      * @param {*} res 
      */
-    async setUser(req, res){
+    async createUser(req, res){
         const validation = validationUserShema.validate(req.body);
         // Get all errors validation
         const errorMessage = getMessages(validation);
@@ -54,7 +54,7 @@ module.exports = {
      * @param {*} req 
      * @param {*} res 
      */
-    async getUser(req, res){
+    async getUserById(req, res){
         const user = await usersModel.getUserById(req.params.id);
         
         const result = {

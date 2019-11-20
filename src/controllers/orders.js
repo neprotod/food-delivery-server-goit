@@ -29,7 +29,7 @@ module.exports = {
      * @param {*} req 
      * @param {*} res 
      */
-    async setOrders(req, res){
+    async saveOrders(req, res){
         
         const validation = validationOrderShema.validate(req.body);
 
@@ -90,7 +90,7 @@ module.exports = {
      * @param {*} req 
      * @param {*} res 
      */
-    async getOrders(req, res){
+    async getOrderById(req, res){
         try{
             const id = req.params.id;
             const order = await ordersModel.getOrderById(id);

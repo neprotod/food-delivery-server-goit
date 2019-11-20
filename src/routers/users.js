@@ -3,8 +3,8 @@ const route = Router();
 
 const controllerUsers = require('../controllers/users');
 
-route.post('/', controllerUsers.setUser);
+route.post('/', controllerUsers.createUser);
 
-route.get('/:id', controllerUsers.getUser);
+route.get('/:id', controllerUsers.getUserById);
 
 module.exports = route;

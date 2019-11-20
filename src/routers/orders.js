@@ -3,8 +3,8 @@ const route = Router();
 
 const controllerOrders = require('../controllers/orders');
 
-route.post('/', controllerOrders.setOrders);
-route.get('/:id', controllerOrders.getOrders);
+route.post('/', controllerOrders.saveOrders);
+route.get('/:id', controllerOrders.getOrderById);
 
 
 module.exports = route;
