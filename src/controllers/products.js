@@ -1,6 +1,5 @@
 const productsModel = require('../models/products');
 
-
 const {findProducts, findCategories} = require('../utils/products');
 
 const productsList = {
@@ -16,15 +15,14 @@ module.exports = {
      * @param {*} res 
      */
     async getProducts(req, res){
-        const allProducts = await productsModel.getAllProducts();
-    
+        // Delegation request
         if(req.query.ids){
             const ids = req.query.ids.split(',');
-            productsList.products = findProducts(allProducts, ids);
+            productsList.products = await productsModel.getProductsByIds(ids);
         }else if(req.query.category){
-            productsList.products = findCategories(allProducts, req.query.category);
+            productsList.products = await productsModel.getProductsByCategory(req.query.category);
         }else{
-            productsList.products = allProducts;
+            productsList.products = await productsModel.getAllProducts();
         }
     
         if(productsList.products.length > 0){
@@ -43,9 +41,8 @@ module.exports = {
      * @param {*} res 
      */
     async getProduct(req, res){
-        const allProducts = await productsModel.getAllProducts();
-        productsList.products = findProducts(allProducts, [req.params.id]);
-        
+        productsList.products = await productsModel.getProductsByIds([req.params.id]);
+
         if(productsList.products.length > 0){
             productsList.status = "success";
         }
