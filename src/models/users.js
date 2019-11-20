@@ -12,7 +12,6 @@ const readFile  = util.promisify(fs.readFile);
 module.exports = {
     /**
      * Path file for all users
-     * 
      * @type {string}
      */
     path: path.join(__dirname, '../db/all-users.json'),

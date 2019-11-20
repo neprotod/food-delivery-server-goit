@@ -8,6 +8,11 @@ const readFile = promisify(fs.readFile);
 
 module.exports = {
     /**
+     * Path to file
+     * @type {string}
+     */
+    filePath: path.join(__dirname,'..','db','all-products.json'),
+    /**
      * Keep cache all products
      * @type {Array}
      */
@@ -20,10 +25,9 @@ module.exports = {
     async getAllProducts(){
         if(this.allProducts.length !== 0)
             return this.allProducts;
-        
-        const filePath = path.join(__dirname,'..','db','all-products.json');
+
         try{ 
-            const allProducts  = await readFile(filePath, 'utf8');
+            const allProducts  = await readFile(this.filePath, 'utf8');
 
             this.allProducts = [];
             if(!allProducts ){

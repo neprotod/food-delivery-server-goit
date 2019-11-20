@@ -8,6 +8,7 @@ module.exports = {
     getMessages(validation){
         if(!validation.error)
             return false;
+        
         const allMessage = [];
         
         for(const detail of validation.error.details){
