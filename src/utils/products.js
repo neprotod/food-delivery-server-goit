@@ -7,24 +7,12 @@ module.exports = {
      * @return {Array} return products or []
      */
     findProducts(products, ids){
-        let productsList = [];
-
-        for(let product of products){
-
-            let check = false;
-
-            if(Array.isArray(ids)){
-                check = ids.some((id)=>{
-                    return +id === product.id;
-                });
+        return products.filter((elem)=>{
+            if(ids.includes(`${elem.id}`)){
+                return true;
             }
-            
-            if(check){
-                productsList.push(product);
-            }
-        }
-
-        return productsList;
+            return false;
+        });
     },
     /**
      * This function will find all products by categories
@@ -34,23 +22,11 @@ module.exports = {
      * @return {Array} return products or []
      */
     findCategories(products, category){
-        let productsList = [];
-
-        for(let product of products){
-
-            let check = false;
-
-            if(category){
-                check = product.categories.some((cat)=>{
-                    return cat === category;
-                });
+        return products.filter((elem)=>{
+            if(elem.categories.includes(category)){
+                return true;
             }
-            
-            if(check){
-                productsList.push(product);
-            }
-        }
-
-        return productsList;
+            return false;
+        });
     }
 }
