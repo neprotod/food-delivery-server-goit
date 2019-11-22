@@ -1,6 +1,21 @@
-const Register = require("./src/handler/register");
+const express = require('express');
+const config = require('./config');
 
-const server = require("./src/server");
-const config = require("./config");
+const routers = require('./src/routers');
 
-server.start(config.port);
+const app = express();
+
+
+process.on('exit',()=>{
+    console.error('Shutdown node js');
+});
+
+
+app.use(express.json());
+app.use('/', routers);
+
+
+
+app.listen(config.port, ()=>{
+    console.log(`Server is starting in ${config.port}`);
+});
