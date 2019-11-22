@@ -50,7 +50,6 @@ module.exports = {
             await writeFile(this.path, JSON.stringify(allUser, null, '  '));
         }catch(e){
             console.error(e);
-            process.exit(1);
         }
 
         return user;

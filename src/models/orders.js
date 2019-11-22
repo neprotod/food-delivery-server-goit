@@ -52,7 +52,6 @@ module.exports = {
             await writeFile(this.path, JSON.stringify(allOrders, null, '  '));
         }catch(e){
             console.error(e);
-            process.exit(1);
         }
 
         return order;
