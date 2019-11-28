@@ -16,5 +16,19 @@ module.exports = {
         }
 
         return allMessage;
+    },
+
+    allValidation(req, res, shema){
+        const validation = shema.validate(req.body, {abortEarly: false});
+        // Get all errors validation
+        const errorMessages = this.getMessages(validation);
+        if(errorMessages){
+            console.error(validation.error);
+            res.status(400).json({errors: errorMessages});
+            return false;
+        }
+
+        req.body = validation.value;
+        return true;
     }
 }
