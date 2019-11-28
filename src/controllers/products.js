@@ -1,6 +1,4 @@
-const productsModel = require('../models/products');
-
-const {findProducts, findCategories} = require('../utils/products');
+const Product = require('../models/products');
 
 const productsList = {
     "status": "no products", 
@@ -16,23 +14,29 @@ module.exports = {
      */
     async getProducts(req, res){
         // Delegation request
-        if(req.query.ids){
-            const ids = req.query.ids.split(',');
-            productsList.products = await productsModel.getProductsByIds(ids);
-        }else if(req.query.category){
-            productsList.products = await productsModel.getProductsByCategory(req.query.category);
-        }else{
-            productsList.products = await productsModel.getAllProducts();
+        try{
+            if(req.query.ids){
+                const ids = req.query.ids.split(',');
+                productsList.products = await Product.getProductsByIds(ids);
+            }else if(req.query.category){
+                productsList.products = await Product.getProductsByCategory(req.query.category);
+            }else{
+                productsList.products = await Product.getAllProducts();
+            }
+        }catch(e){
+            console.error(e);
+            // Category dasen't exist
+            if(e.code === 1){
+                return res.status('400').json({errors:[e.toString()]});
+            }
+            return res.status('500').json({errors:['Database error']});
         }
     
         if(productsList.products.length > 0){
             productsList.status = "success";
         }
-    
-        res.status('200');
-        res.set('Content-Type', 'application/json');
 
-        res.json(productsList);
+        res.status('200').json(productsList);
     },
     /**
      * Get products by id
@@ -41,14 +45,41 @@ module.exports = {
      * @param {*} res 
      */
     async getProduct(req, res){
-        productsList.products = await productsModel.getProductsByIds([req.params.id]);
+        try{
+            productsList.products = await Product.getProductsByIds([req.params.id]);
 
-        if(productsList.products.length > 0){
-            productsList.status = "success";
+            if(productsList.products){
+                productsList.status = "success";
+            }
+            res.status('200').json(productsList);
+        }catch(e){
+            console.error(e);
+            res.status('500').json({errors:['Database error']});
         }
-        res.status('200');
-        res.set('Content-Type', 'application/json');
+    },
+    /**
+     * Save product
+     * 
+     * @param {*} req 
+     * @param {*} res 
+     */
+    async saveProducts(req, res){
+        try{
+            const product = await Product.saveProducts(req.body);
+            const result = {
+                status: "success",
+                product: product
+            }
+            res.status(201).json(result);
+        }catch(e){
+            console.log(e);
 
-        res.json(productsList);
+            //duplicate key
+            if ( e.code === 11000 ) {
+                return res.status(400).json({errors:['This user already exist']});
+            }
+
+            res.status(500).json({errors:['Database error']});
+        }
     }
 }

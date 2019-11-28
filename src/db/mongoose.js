@@ -7,7 +7,7 @@ try{
         useCreateIndex: true,
         useUnifiedTopology: true
     });
-    
+
     console.log('MongoDB is connection');
 }catch(e){
     console.error(e);
