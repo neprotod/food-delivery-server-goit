@@ -13,7 +13,7 @@ module.exports = {
             user: {}
         }
         try{
-            const user = await User.updateUser(req.params.id, req.body);
+            const user = await User.updateUserById(req.params.id, req.body);
             
             if(!user){
                 return res.status(400).json({errors:["User doesn't exist"]})

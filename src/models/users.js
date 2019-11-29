@@ -57,7 +57,7 @@ module.exports = {
      * @param  {Object} user user fields to update
      * @return {Object}      user
      */
-    async updateUser(id, userParams){
+    async updateUserById(id, userParams){
         return await User.findByIdAndUpdate(id, userParams, {new: true});
     },
     /**
