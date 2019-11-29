@@ -1,87 +1,74 @@
-const fs = require('fs');
-const path = require('path');
-const util = require('util');
-const usersModel = require('./users');
-const productsModel = require('./products');
+const mongoose = require('mongoose');
 
-const stat = util.promisify(fs.stat);
-const writeFile = util.promisify(fs.writeFile);
-const readFile  = util.promisify(fs.readFile);
+const User    = require('./users');
+const Product = require('./products');
+
+const Order = mongoose.model('orders',{
+    creator: {
+        type: mongoose.Types.ObjectId,
+        ref: 'users',
+        require: true
+    },
+    productsList: [{
+        product:{
+            type: mongoose.Types.ObjectId,
+            ref: 'products',
+            require: true
+        },
+        type: {
+            type: String,
+            require: true
+        },
+        itemsCount:{
+            type: Number,
+            default: 0,
+            require: true
+        }
+    }],
+    deliveryType: {
+        type: String,
+        required: true
+    },
+    deliveryAdress: {
+        type: String,
+        required: true
+    },
+    sumToPay: {
+        type: Number,
+        required: true
+    },
+    status: {
+        type: String,
+        required: true
+    }
+});
+
 
 /**
  * 
  */
 module.exports = {
     /**
-     * Path file for all users
-     * @type {string}
-     */
-    path: path.join(__dirname, '../db/all-orders.json'),
-
-    /**
-     * Get all orders from file
-     * 
-     * @return {Array} all users
-     */
-    async getAllOrders(){
-        try{
-            await stat(this.path);
-        }catch(e){
-            // We don't have file, return empty array
-            return [];
-        }
-        const allOrders = await readFile(this.path, 'utf8');
-
-        // If empty file
-        if(!allOrders)
-            return [];
-
-        return JSON.parse(allOrders);
-    },
-
-    /**
      * Save orders
      * 
      * @param  {Object} order order to save
      * @return {Object}      order
      */
-    async saveOrder(order){
-        const allOrders = await this.getAllOrders();
-        allOrders.push(order);
-        try{
-            await writeFile(this.path, JSON.stringify(allOrders, null, '  '));
-        }catch(e){
-            console.error(e);
-        }
+    async saveOrder(orderParams){
+        const order = new Order(orderParams);
 
-        return order;
+        return await order.save();
     },
 
     /**
+     * Get order by id
      * 
      * @param  {any} id id orders, we must pass this parametr in the type with which you want compare
      * @return {Object| null} order
      */
     async getOrderById(id){
-        const allOrders = await this.getAllOrders();
-        
-        const order =  allOrders.find((elem)=>{
-            if(elem.id === id){
-                return elem;
-            }
-        });
-
-        if(!order){
-            return false;
-        }
-
-        // We supplement data
-        order.user = await usersModel.getUserById(order.user);
-        delete order.user.id;
-
-        order.products = await productsModel.getProductsByIds(order.products);
-
-        return order;
-
+        return await Order.findById(id)
+            .populate('creator')
+            .populate('productsList.product');
     }
 }
