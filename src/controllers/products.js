@@ -72,11 +72,11 @@ module.exports = {
             }
             res.status(201).json(result);
         }catch(e){
-            console.log(e);
+            console.error(e);
 
             //duplicate key
             if ( e.code === 11000 ) {
-                return res.status(400).json({errors:['This user already exist']});
+                return res.status(400).json({errors:['This product already exist']});
             }
 
             res.status(500).json({errors:['Database error']});
