@@ -41,12 +41,22 @@ const Product = mongoose.model('products', productShema);
 
 module.exports = {
     /**
+     * Update products
+     * 
+     * @param  {number} id   product id
+     * @param  {{}}     date fields to update
+     * @return {{}}          user in DB
+     */
+    async updateProductById(id, productParams){
+        return await Product.findByIdAndUpdate(id, productParams, {new: true});
+    },
+    /**
      * Save products
      * 
      * @param  {{}} date fields to DB
      * @return {{}} user in DB
      */
-    async saveProducts(date){
+    async saveProduct(date){
         const product = new Product(date);
         return await product.save();
     },

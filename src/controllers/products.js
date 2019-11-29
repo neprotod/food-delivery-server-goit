@@ -1,4 +1,5 @@
 const Product = require('../models/products');
+const empty = require('is-empty');
 
 const productsList = {
     "status": "no products", 
@@ -63,13 +64,14 @@ module.exports = {
      * @param {*} req 
      * @param {*} res 
      */
-    async saveProducts(req, res){
+    async saveProduct(req, res){
         try{
-            const product = await Product.saveProducts(req.body);
+            const product = await Product.saveProduct(req.body);
             const result = {
                 status: "success",
                 product: product
             }
+            
             res.status(201).json(result);
         }catch(e){
             console.error(e);
@@ -81,5 +83,48 @@ module.exports = {
 
             res.status(500).json({errors:['Database error']});
         }
+    },
+    /**
+     * Update product
+     * 
+     * @param {*} req 
+     * @param {*} res 
+     */
+    async updateProduct(req, res){
+        try{
+            const product = await Product.updateProductById(req.params.id, req.body);
+            const result = {
+                status: "success",
+                product: product
+            }
+
+            if(empty(product)){
+                result.status = "No found";
+                return res.status(404).json(result);
+            }
+
+            res.status(200).json(result);
+        }catch(e){
+            console.error(e);
+
+            //duplicate key
+            if ( e.code === 11000 ) {
+                return res.status(400).json({errors:['This product already exist']});
+            }
+
+            res.status(500).json({errors:['Database error']});
+        }
+        /*try{
+            
+        }catch(e){
+            console.error(e);
+
+            //duplicate key
+            if ( e.code === 11000 ) {
+                return res.status(400).json({errors:['This product already exist']});
+            }
+
+            res.status(500).json({errors:['Database error']});
+        }*/
     }
 }
