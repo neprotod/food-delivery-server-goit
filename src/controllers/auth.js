@@ -1,0 +1,62 @@
+const empty = require('is-empty');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const User = require('../models/users');
+const config = require('../../config');
+
+module.exports = {
+     /**
+     * Login user
+     * 
+     * @param {*} req 
+     * @param {*} res 
+     */
+    async login(req, res){
+        const auth = req.header('authorization');
+        if(auth){
+            return res.status(400).json({errors:["You're already auth"]});
+        }
+        const user = await User.getLogin(req.body.username);
+
+        if(empty(user)){
+            res.status(400).json({errors:["Not user with this username"]});
+        }
+
+        // Test password
+        const test = await bcrypt.compare(req.body.password, user['password']);
+        
+        if(!test){
+            res.status(400).json({errors:["Password wrong"]});
+        }
+
+        // Everything is ok, create token
+        const token = await user.generateAuthToken();
+        res.set('X-Auth-Token', token);
+
+        res.status(200).json({token});
+    },
+    /**
+     * Save user
+     * 
+     * @param {*} req 
+     * @param {*} res 
+     */
+    async register(req, res){
+        try{
+            const user = await User.saveUser(req.body);
+            const result = {
+                "status": "success",
+                "user": user
+            }
+            res.status(201).json(result);
+        }catch(e){
+            console.error(e);
+            //duplicate key
+            if ( e.code === 11000 ) {
+                return res.status(400).json({errors:['This user already exist']});
+            }
+            
+            res.status(500).json({errors:['Something wrong in database']});
+        }
+    }
+}

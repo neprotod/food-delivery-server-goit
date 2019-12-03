@@ -1,4 +1,10 @@
 const mongoose = require('mongoose');
+const empty = require('is-empty');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const config = require('../../config');
+
+// Models
 const Order = require('./orders');
 const Product = require('./products');
 
@@ -42,10 +48,41 @@ const userShema = new Schema({
             ref:  'orders'
         }],
         default: []
-    }
+    },
+    tokens: [{
+        token: {
+            type: String,
+            require: true
+        }
+    }]
 });
 
 userShema.index({email: 1}, {unique: true});
+
+// Authorization
+userShema.methods.generateAuthToken = async function (){
+    const user = this;
+    
+    // Create signature
+    const token = jwt.sign({id: user._id.toString()}, config.jwt_secret, {expiresIn: config.jwt_expire});
+    
+    // Save in all tokens
+    user.tokens = user.tokens.concat({token});
+    await user.save();
+
+    return token;
+}
+
+
+// Hash the plain text password before saving
+userShema.pre('save', async function(next){
+    const user = this;
+
+    if(user.isModified('password')){
+        user['password'] = await bcrypt.hash(user['password'], 8);
+    }
+    next();
+});
 
 const User = mongoose.model('users', userShema);
 
@@ -58,7 +95,17 @@ module.exports = {
      * @return {Object}      user
      */
     async updateUserById(id, userParams){
-        return await User.findByIdAndUpdate(id, userParams, {new: true});
+        const user = await User.findById(id);
+
+        if(empty(user))
+            return user;
+        
+        const updates = Object.keys(userParams);
+
+        updates.forEach((update)=> (user[update] = userParams[update]));
+
+        // We use save, becouse findByUpdate too bad work in db.pre()
+        return await user.save();
     },
     /**
      * Save user
@@ -82,5 +129,23 @@ module.exports = {
                 .populate('favoriteProducts')
                 .populate('viewedProducts')
                 .populate('orders');
+    },
+    /**
+     * Get user by id
+     * 
+     * @param  {any} id id users, we must pass this parametr in the type with which you want compare
+     * @return {Object} user
+     */
+    async getLogin(username){
+        return await User.findOne({username});
+    },
+    /**
+     * Get user by id
+     * 
+     * @param  {any} id id users, we must pass this parametr in the type with which you want compare
+     * @return {Object} user
+     */
+    async getSignature(username){
+        return await User.findOne({username});
     }
 }
