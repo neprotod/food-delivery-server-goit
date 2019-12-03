@@ -1,6 +1,9 @@
 const express = require('express');
 const config = require('./config');
 
+// Connection to database
+require('./src/db/mongoose');
+
 const routers = require('./src/routers');
 
 const app = express();

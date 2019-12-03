@@ -1,26 +1,30 @@
-const Joi = require('@hapi/joi');
-const nanoid = require('nanoid');
-const usersModel = require('../models/users');
-const {getMessages} = require('../utils/validation');
-
-// Shema validation users
-const validationUserShema = Joi.object({
-    username: Joi.string()
-        .required(),
-
-    telephone: Joi.string()
-        .required(),
-
-    password: Joi.string()
-        .required(),
-
-    email: Joi.string()
-        .email()
-        .required()
-});
-
+const User = require('../models/users');
 
 module.exports = {
+    /**
+     * Update user
+     * 
+     * @param {*} req 
+     * @param {*} res 
+     */
+    async updateUser(req, res){
+        const result = {
+            status: "success", 
+            user: {}
+        }
+        try{
+            const user = await User.updateUserById(req.params.id, req.body);
+            
+            if(!user){
+                return res.status(400).json({errors:["User doesn't exist"]})
+            }
+            result.user = user;
+            res.status(200).json(result);
+        }catch(e){
+            console.error(e);
+            res.status(500).json({errors:['Something wrong in database']});
+        }
+    },
     /**
      * Save user
      * 
@@ -28,24 +32,21 @@ module.exports = {
      * @param {*} res 
      */
     async createUser(req, res){
-        const validation = validationUserShema.validate(req.body);
-        // Get all errors validation
-        const errorMessage = getMessages(validation);
-        if(errorMessage){
-            console.log(validation.error);
-            return res.status(400).json(errorMessage);
-        }
-
-        const user = {id: nanoid(), ...validation.value};
-
-        if(await usersModel.saveUser(user)){
+        try{
+            const user = await User.saveUser(req.body);
             const result = {
                 "status": "success",
                 "user": user
             }
             res.status(201).json(result);
-        }else{
-            res.status(400).end('Something went wrong');
+        }catch(e){
+            console.error(e);
+            //duplicate key
+            if ( e.code === 11000 ) {
+                return res.status(400).json({errors:['This user already exist']});
+            }
+            
+            res.status(500).json({errors:['Something wrong in database']});
         }
     },
     /**
@@ -55,18 +56,23 @@ module.exports = {
      * @param {*} res 
      */
     async getUserById(req, res){
-        const user = await usersModel.getUserById(req.params.id);
-        
-        const result = {
-            "status": "success",
-            "user": user
-        }
+        try{
+            const user = await User.getUserById(req.params.id);
+            
+            const result = {
+                "status": "success",
+                "user": user
+            }
 
-        if(!user){
-            result.status = "not found";
-            res.status(404).json(result);
-        }
+            if(!user){
+                result.status = "not found";
+                return res.status(404).json(result);
+            }
 
-        res.status(200).json(result);
+            res.status(200).json(result);
+        }catch(e){
+            console.error(e);
+            res.status(500).json({errors:['Something wrong in database']});
+        }
     }
 }

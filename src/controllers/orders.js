@@ -1,26 +1,9 @@
 const Joi = require('@hapi/joi');
-const nanoid = require('nanoid');
-const {getMessages} = require('../utils/validation');
-const productsModel = require('../models/products');
-const ordersModel = require('../models/orders');
+const Product = require('../models/products');
+const User = require('../models/users');
+const Order = require('../models/orders');
+const empty = require('is-empty');
 
-
-// Shema validation orders
-const validationOrderShema = Joi.object({
-    user: Joi.string()
-        .required(),
-
-    products: Joi.array()
-        .required(),
-
-    deliveryType: Joi.string()
-        .lowercase()
-        .pattern(/^delivery$/)
-        .required(),
-
-    deliveryAdress: Joi.string()
-        .required()
-});
 
 module.exports = {
     /**
@@ -30,58 +13,41 @@ module.exports = {
      * @param {*} res 
      */
     async saveOrders(req, res){
-        
-        const validation = validationOrderShema.validate(req.body);
+        try{
+            const result = {
+                status: "success", 
+                order: {}
+            }
 
-        // Get all errors validation
-        const errorMessage = getMessages(validation);
-        if(errorMessage){
-            console.log(validation.error);
-            return res.status(400).json(errorMessage);
-        }
-        // This order is valid
-        let order = validation.value;
+            const order = req.body;
+            // It's need to save itemsCount then multiply price
+            const itemsCount = {}
+            // Get all products ids, it's need to count all pays
+            const productsIds = order.productsList.map((item)=>{
+                // Id it's key when we find a products
+                itemsCount[item.product] = item.itemsCount;
+                return item.product;
+            });
+            
+            // Find all products
+            const products = await Product.getProductsByIds(productsIds);
 
-        // Get all products by ids
-        const findProducts = await productsModel.getProductsByIds(order.products);
-
-        // We have to by sure to order products = findProducts
-        if(findProducts.length !== order.products.length){
-            // This order is incorrect, calculate the difference
-            const productIds =  findProducts.map((elem)=>(elem.id));
-
-            const different = order.products.filter((ids)=>{
-                if(!productIds.includes(ids)){
-                    return true;
-                }
+            let sumToPay = 0;
+            products.forEach((item)=>{
+                sumToPay += itemsCount[item._id.toString()] * item.price;
             });
 
-            const result = {
-                status: 'failed', 
-                order: null,
-                noProduct: different
-            }
-            return res.status('404').json(result);
+            // We have normal sumToPay, add it in collection
+            order.sumToPay = sumToPay;
             
-        }
+            // Save order
+            const saveOrder = await Order.saveOrder(order);
 
-        // Everything is ok, formatting and response
-        order = {id: nanoid(), ...order};
-
-        const result = {
-            status: 'success',
-            order
-        }
-        // Save this order
-        try{
-            if(await ordersModel.saveOrder(order)){
-                res.status(201).json(result);
-            }else{
-                throw new Error('Something go wrong');
-            }
+            result.order = saveOrder;
+            
+            res.status(201).json(result);
         }catch(e){
-            console.error(e);
-            return res.status('400').end('Something go wrong');
+            res.status(500).json({errors:['Something wrong in database']});
         }
     },
     /**
@@ -91,14 +57,22 @@ module.exports = {
      * @param {*} res 
      */
     async getOrderById(req, res){
+        const result = {
+            status: "success", 
+            order: {}
+        }
+
         try{
-            const id = req.params.id;
-            const order = await ordersModel.getOrderById(id);
-            if(order)
-                return res.status(200).json(order);
+            result.order = await Order.getOrderById(req.params.id);
+            if(empty(result.order)){
+                result.status = "No found";
+                res.status(404).json(result);
+            }
+
+            res.status(200).json(result);
         }catch(e){
             console.error(e);
+            res.status(500).json({errors:['Something wrong in database']});
         }
-        res.status(404).end("We couldn't find order");
     }
 }
