@@ -3,6 +3,26 @@ const bcrypt = require('bcrypt');
 const User = require('../models/users');
 
 module.exports = {
+    /**
+     * Current user
+     * 
+     * @param {*} req 
+     * @param {*} res 
+     */
+    async current(req, res){
+        try{
+            const data = await User.getUserById(req.user._id);
+            const user = data.toObject();
+            
+            delete user.tokens;
+            delete user.password;
+
+            res.status(200).json(user);
+        }catch(e){
+            console.error(e);
+            res.status(400).json({errors:['Wrong opperation']});
+        }
+    },
      /**
      * Logout user
      * 
