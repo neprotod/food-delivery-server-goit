@@ -59,7 +59,7 @@ const userShema = new Schema({
 
 userShema.index({email: 1}, {unique: true});
 
-// Authorization
+// Authorization token
 userShema.methods.generateAuthToken = async function (){
     const user = this;
     
@@ -140,12 +140,11 @@ module.exports = {
         return await User.findOne({username});
     },
     /**
-     * Get user by id
      * 
-     * @param  {any} id id users, we must pass this parametr in the type with which you want compare
-     * @return {Object} user
+     * @param {*} id 
+     * @param {*} token 
      */
-    async getSignature(username){
-        return await User.findOne({username});
+    async getSignature(id, token){
+        return await User.findOne({_id:id, 'tokens.token': token});
     }
 }

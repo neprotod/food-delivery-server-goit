@@ -1,10 +1,30 @@
 const empty = require('is-empty');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 const User = require('../models/users');
-const config = require('../../config');
 
 module.exports = {
+     /**
+     * Logout user
+     * 
+     * @param {*} req 
+     * @param {*} res 
+     */
+    async logout(req, res){
+        try{
+            // Unset token
+            req.user.tokens = req.user.tokens.filter((elem)=>{
+                if(elem.token !== req.token){
+                    return elem;
+                }
+            });
+
+            req.user.save();
+            
+            res.status(200).json('You are logout');
+        }catch(e){
+            res.status(400).json({errors:['Wrong opperation']});
+        }
+    },
      /**
      * Login user
      * 
@@ -13,6 +33,7 @@ module.exports = {
      */
     async login(req, res){
         const auth = req.header('authorization');
+        
         if(auth){
             return res.status(400).json({errors:["You're already auth"]});
         }
