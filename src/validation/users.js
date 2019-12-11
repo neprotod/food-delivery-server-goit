@@ -17,11 +17,15 @@ const optioanlFields = {
         .email()
 }
 
-const requiredFields = {
+const registerFields = {
     username: optioanlFields.username.required(),
     telephone: optioanlFields.telephone.required(),
     password: optioanlFields.password.required(),
     email: optioanlFields.email.required()
+}
+const loginField = {
+    username: optioanlFields.username.required(),
+    password: optioanlFields.password.required(),
 }
 
 
@@ -44,7 +48,13 @@ const validationShema = Joi.object({
 module.exports = {
     saveUser(req, res, next){
         // Use required field
-        const shema = validationShema.keys(requiredFields);
+        const shema = validationShema.keys(registerFields);
+        if(validationUtil.allValidation(req, res, shema))
+            next();
+    },
+    loginUser(req, res, next){
+        // Use required field
+        const shema = validationShema.keys(loginField);
         if(validationUtil.allValidation(req, res, shema))
             next();
     },

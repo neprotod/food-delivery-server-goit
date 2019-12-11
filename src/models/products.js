@@ -1,6 +1,6 @@
-  
 const mongoose = require('mongoose');
 const ProductType = require('./productTypes');
+const Ingredient = require('./ingredients');
 
 const Schema = mongoose.Schema;
 const productShema = new Schema({
@@ -33,6 +33,10 @@ const productShema = new Schema({
     categories: [{
         type: mongoose.Types.ObjectId,
         ref: 'product_types'
+    }],
+    ingredients: [{
+        type: mongoose.Types.ObjectId,
+        ref: 'ingredients'
     }]
   },
   {timestamps: true});
@@ -67,7 +71,9 @@ module.exports = {
      * @return {Array} allProducts
      */
     async getAllProducts(){
-        return await Product.find({}).populate('categories');
+        return await Product.find({})
+            .populate('categories')
+            .populate('ingredients');
     },
     /**
      * Find products by ids
@@ -76,7 +82,9 @@ module.exports = {
      * @return {Array}     products
      */
     async getProductsByIds(ids){
-        return await Product.find({'_id':{$in:ids}}).populate('categories');
+        return await Product.find({'_id':{$in:ids}})
+            .populate('categories')
+            .populate('ingredients');
     },
     /**
      * Find products by category
@@ -94,6 +102,8 @@ module.exports = {
             throw error;
         }
         
-        return await Product.find({'categories': {$in: [findCategory[0]._id]}}).populate('categories');
+        return await Product.find({'categories': {$in: [findCategory[0]._id]}})
+        .populate('categories')
+        .populate('ingredients');
     }
 }

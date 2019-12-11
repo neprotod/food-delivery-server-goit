@@ -4,8 +4,6 @@ const userValidation = require('../validation/users');
 
 const controllerUsers = require('../controllers/users');
 
-route.post('/', userValidation.saveUser, controllerUsers.createUser);
-
 route.get('/:id', controllerUsers.getUserById);
 
 // update user
